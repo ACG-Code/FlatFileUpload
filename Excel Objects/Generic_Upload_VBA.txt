@@ -1,0 +1,93 @@
+Option Explicit
+
+Public Const gsInputSheetName As String = "Input"
+Public Const gsFinalSheetName As String = "CSV"
+Public Const gsUrl As String = "http://vm-cons-paw.acg.local/"
+'Public Const gsUrl As String = "https://us-east-1.planninganalytics.saas.ibm.com/?accountId=HEZOJ3W4Q7FS&tenantId=RGLC2XR62EDS"
+Public Const gsInstanceName As String = "SData"
+Public Const gsProcessName As String = "Cube_PriceCube_Load_From_File_Wrapper"
+Public Const gsFolderPath As String = "C:\temp\"
+Public Const gsFileName As String = "SalesPrice_Upload.csv"
+Public Const gsPublishPath As String = "Contents('Upload Files')"
+
+Sub create_csv_and_upload_data()
+    Dim wsInput As Worksheet: Set wsInput = Worksheets(gsInputSheetName)
+    Dim wsCSV As Worksheet
+    Dim sFolderPath As String: sFolderPath = gsFolderPath
+    Dim sFileName As String: sFileName = gsFileName
+    Dim sFullFileName As String: sFullFileName = sFolderPath + sFileName
+    Dim bSuccess As Boolean: bSuccess = False
+    
+    ' Turn off screen updating, set calculation to manual
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+    
+    ' Copy input sheet to new tab and prep data before saving as csv
+    With Worksheets(gsInputSheetName)
+        .Copy After:=Sheets(Sheets.Count)
+    End With
+    ActiveSheet.Name = gsFinalSheetName
+    Set wsCSV = Worksheets(gsFinalSheetName)
+    
+    '***** Add other file / data manipulation here *****
+    
+    ' Save to csv
+    Application.DisplayAlerts = False
+    wsCSV.Copy
+    ActiveWorkbook.SaveAs Filename:=sFullFileName, FileFormat:=xlCSV
+    ActiveWorkbook.Close
+    
+    ' Publish to PA environment
+    bSuccess = publish_file_and_load_data(sFolderPath, sFileName)
+    
+    ' Delete temp sheets
+    wsCSV.Delete
+    
+    ' Update screenupdating, calculation method, and display alerts
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+    Application.DisplayAlerts = True
+    
+    ' Bring focus back to main sheet
+    wsInput.Select
+        
+    ' Display completion message box
+    If bSuccess Then
+        MsgBox "Success!", vbOKOnly, "Upload Complete"
+    Else
+        MsgBox "Upload failed!", vbOKOnly, "Upload Complete"
+    End If
+
+End Sub
+
+Function publish_file_and_load_data(sFolderPath As String, sFileName As String)
+    Dim oMessageSuppressor As CognosOfficeMessageSuppressor
+    Set oMessageSuppressor = New CognosOfficeMessageSuppressor
+    Dim sUrl As String: sUrl = gsUrl
+    Dim sDS As String: sDS = gsInstanceName
+    Dim sPublishPath As String: sPublishPath = gsPublishPath
+    Dim sDocumentPath As String: sDocumentPath = sFolderPath + sFileName
+    Dim sDescription As String: sDescription = ""
+    Dim sScreenTip As String: sScreenTip = ""
+    Dim sIsPrivate As Boolean: sIsPrivate = False
+    Dim sAsReference As Boolean: sAsReference = False
+    Dim sIsRepublish As Boolean: sIsRepublish = False
+    Dim sProcessName As String: sProcessName = gsProcessName
+    Dim sParams As String: sParams = ""
+    Dim sReturn As String
+
+    ' check if file exists
+    If Dir(sDocumentPath) <> "" Then
+        ' Publish file
+        CognosOfficeAutomationObject.PublishTm1 sUrl, sDS, sPublishPath, sDocumentPath, sFileName, sDescription, sScreenTip, sIsPrivate, sAsReference, sIsRepublish
+    
+        ' Execute process to load file
+        CognosOfficeAutomationObject.ExecuteFunction sUrl, sDS, sProcessName, sParams
+        
+        publish_file_and_load_data = True
+    End If
+
+End Function
+
+
+
