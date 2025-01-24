@@ -1,0 +1,76 @@
+#region Prolog
+
+sFile = ''; 
+DataSourceNameForServer = pFile; 
+
+#Region ############################################# HEADER #############################################
+# Process: Cube_PriceCube_Load_From_File
+# Purpose: Load data into PriceCube from flat file
+# Date Created: ACGI
+# Last Update: 2024-01-23
+# Notes: 
+#     2024-01-23 (ACGI) - Initial Process Creation
+#EndRegion
+ 
+#Region --------------- Constants ---------------
+cProc = GetProcessName;
+cUser = NumberToString(DIMIX('}Clients', TM1USER));
+cTimestamp = TIMST(now, '\Y\m\d\h\i\s');
+cRandomInt = NumberToString(INT(RAND() * 1005));
+cView = '%cProc%.%cUser%.%cTimestamp%.%cRandomInt%';
+cTemp = 1;
+
+cCube = 'PriceCube'; 
+cView = GetProcessName | TIMST(now,  '\Y\m\d\h\i\s'); 
+#EndRegion
+
+
+ 
+#Region --------------- Variables ---------------
+sView = EXPAND(cView);
+nMetaHdr = 0;
+nMeta = 0;
+nDataHdr = 0;
+nData = 0;
+#EndRegion
+ 
+
+#Region --------------- null ---------------
+IF(ViewExists(cCube, cView) = 1);
+	ViewDestroy(cCube, cView);
+ENDIF;
+ViewCreate(cCube, cView, cTemp);
+ViewExtractSkipZeroesSet(cCube, cView, 1);
+ViewExtractSkipCalcsSet(cCube, cView, 1);
+ViewExtractSkipRuleValuesSet(cCube, cView, 1);
+ 
+nLoop = 1;
+nMax = CubeDimensionCountGet(cCube);
+ 
+WHILE(nLoop <= nMax);
+	sDim = TABDIM(cCube, nLoop);
+ 
+	IF(SubsetExists(sDim, cView) = 1);
+		SubsetDeleteAllElements(sDim, cView);
+	ELSE;
+		SubsetCreate(sDim, cView, cTemp);
+    ENDIF;
+ 
+	IF (sDim @= 'actvsbud'); 
+        SubsetElementInsert(sDim, cView, 'Budget', 0); 
+    	ViewSubsetAssign(cCube, cView, sDim, cView);
+    ENDIF; 
+ 
+	nLoop = nLoop + 1;
+END;
+
+ViewZeroOut(cCube, cView); 
+
+#EndRegion
+
+#endregion
+#region Data
+
+CellIncrementN(vValue, 'PriceCube', 'Budget', vRegion, vModel, vMonth ); 
+
+#endregion
