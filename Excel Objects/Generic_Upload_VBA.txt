@@ -3,7 +3,6 @@ Option Explicit
 Public Const gsInputSheetName As String = "Input"
 Public Const gsFinalSheetName As String = "CSV"
 Public Const gsUrl As String = "http://vm-cons-paw.acg.local/"
-'Public Const gsUrl As String = "https://us-east-1.planninganalytics.saas.ibm.com/?accountId=HEZOJ3W4Q7FS&tenantId=RGLC2XR62EDS"
 Public Const gsInstanceName As String = "SData"
 Public Const gsProcessName As String = "Cube_PriceCube_Load_From_File_Wrapper"
 Public Const gsFolderPath As String = "C:\temp\"

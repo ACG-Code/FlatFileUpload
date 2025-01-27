@@ -1,5 +1,8 @@
 # IBM PA: Flat File Upload
-This repository contains the necessary objects to upload a flat file into IBM Planning Analytics.
+This repository contains the necessary objects to upload a flat file into IBM Planning Analytics.  This utility is run from within Planning Analytics for Excel (PAfE) and will:
+* Create CSV file from Excel file
+* Upload CSV file to Planning Analytics server
+* Run a Turbo Integrator process to load the data into a cube
 
 ## Installation
 
@@ -16,5 +19,5 @@ This repository contains the necessary objects to upload a flat file into IBM Pl
   * Download the TI Processes and import them into your PA environment.
 * PA Version 12
   * Use the Remote Repository functionality to import the TI Processes into your PA environment.
-  * Repository URL: `git@github.com:ACG-Code/FlatFileUpload.git`\
+  * Repository URL: `git@github.com:ACG-Code/FlatFileUpload.git`
   * Branch: `v12`
